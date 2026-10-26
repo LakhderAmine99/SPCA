@@ -1,5 +1,4 @@
+"""Compatibility import for the public SPCA classifier."""
+from .spca import SPCA
 
-from torch_geometric.nn import GCN
-
-class SPCA():
-    pass
+__all__ = ["SPCA"]
