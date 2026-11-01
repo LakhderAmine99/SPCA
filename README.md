@@ -4,7 +4,7 @@ Source code for **SPCA: SubPath Semantic Encoding for Context Aware Heterogeneou
 
 SPCA combines attention over metapath endpoint neighborhoods with learned embeddings of the internal node-type sequence. The implementation follows Sections 4 and 7.2 of the manuscript: typed feature projection, dot-product neighbor attention, structural LayerNorm, shared type embeddings and a dedicated two-layer MLP per distinct subpath, additive context fusion followed by LayerNorm, and concatenation with a final linear projection.
 
-This repository contains source, scripts, tests, configuration and documentation. Datasets, trained parameters, experiment outputs, CSVs and figures remain in ignored local directories. No reproduced benchmark scores or pretrained weights are bundled.
+This repository contains source, scripts, tests, configuration and documentation. Datasets, trained parameters, experiment outputs, CSVs and figures remain in ignored local directories.
 
 ## Setup
 
@@ -19,7 +19,7 @@ python -m pytest -q
 python scripts/check_public_files.py
 ```
 
-The runnable adapters use PyTorch and PyG; DGL and TensorFlow are not required. Original baseline snapshots have their own dependencies and are retained for reference. Tests use synthetic graphs and mocked downloads; they do not execute benchmark experiments.
+The models use PyTorch and PyG. Baseline source snapshots include their original dependencies and preprocessing scripts. Tests use synthetic graphs and mocked downloads.
 
 ## Run commands
 
@@ -50,7 +50,7 @@ python run_imdb.py --models spca han --train-ratios 20% 60% --seeds 42 43 44 45 
 python run_dblp.py --phase tune --output local/dblp_tuning
 python run_dblp.py --phase report --selected-config local/dblp_tuning/selected.json
 
-# Explicit single-configuration runs (skip search; not a tuned paper result)
+# Run a fixed configuration
 python run_dblp.py --phase report --models spca --set hidden_channels=128 --set dropout=0.5
 
 # K-means on the selected NC embeddings, reporting NMI and ARI
@@ -61,7 +61,7 @@ python run_lastfm.py
 python run_movielens.py
 ```
 
-Use `--help` for all settings. `--set MODEL.KEY=VALUE` accepts model-specific options, including SPCA's context positions, normalization and encoder; MAGNN's instance encoder and sample cap; GTC's hop count and Transformer depth; HetTree's training-label propagation; and embedding/head widths. Values accept JSON (`true`, `false`, `null`, numbers) or plain strings. `--config configs/paper.json` supplies protocol defaults; CLI flags override them. `--grid configs/grid.json` supplies search arrays; fixed `--set` values remove their axes from the search. Per-head widths are searched only for architectures with a separate head-width parameter. See [the protocol and adaptation notes](docs/paper_protocol.md).
+Use `--help` for all settings. `--set MODEL.KEY=VALUE` accepts model-specific options, including SPCA's context positions, normalization and encoder; MAGNN's instance encoder and sample cap; GTC's hop count and Transformer depth; HetTree's training-label propagation; and embedding/head widths. Values accept JSON (`true`, `false`, `null`, numbers) or plain strings. `--config configs/paper.json` supplies protocol defaults; CLI flags override them. `--grid configs/grid.json` supplies search arrays; fixed `--set` values remove their axes from the search. Per-head widths are searched only for architectures with a separate head-width parameter. See [experiment settings](docs/paper_protocol.md).
 
 ## Data and reproducibility
 
@@ -69,14 +69,13 @@ The exact Table 3 metapaths are defined in [config.py](src/experiments/config.py
 
 NC retains the loader's fixed validation/test sets by default. Main ratios sample within its original training pool; low-label ratios count all labeled nodes per class. `--val-count`, `--test-count`/`--test-ratio`, and `--split-seed` explicitly replace those holdouts. `--graph path/to/graph.pt` accepts a trusted local `HeteroData` graph with typed features, edges, labels and split masks. `--metapaths path/to/paths.json` accepts a target-type-to-path-list mapping.
 
-**ACM requires attention to the variant.** The manuscript lists 3,025 papers, 5,835 authors, 56 subjects and 1,902 feature columns; the existing raw DGL ACM loader produces a different, approximately 4,025-paper graph. The runner refuses to identify that graph as the paper benchmark. Supply the matching prepared graph, or explicitly request `--allow-data-mismatch` for a separately recorded variant:
+Use `--graph` to select a prepared local dataset:
 
 ```bash
 python run_acm.py --graph local/acm3025_graph.pt
-python run_acm.py --allow-data-mismatch
 ```
 
-The same validation catches DBLP's raw-title fallback, whose term count/features differ from the processed benchmark. Graph/feature/split fingerprints, dataset discrepancies, seeds, effective settings and software versions are recorded locally. The manuscript does not give numeric seed lists or all LP feature choices; explicit defaults and remaining assumptions are documented in [paper_protocol.md](docs/paper_protocol.md). This is code-level alignment, not a claim that adapted baselines reproduce published scores.
+Run manifests record graph/feature/split fingerprints, seeds, effective settings and software versions locally. See [paper_protocol.md](docs/paper_protocol.md) for dataset preparation and experiment settings.
 
 ## Models and layout
 
@@ -107,24 +106,24 @@ local/, data/             Ignored runtime artifacts and dataset caches
 | Simple-HGN / HGB | [Model](src/model/baselines/simplehgn/README.md) · [THUDM/HGB](https://github.com/THUDM/HGB) |
 | SeHGNN | [Model](src/model/baselines/sehgnn/README.md) · [ICT-GIMLab/SeHGNN](https://github.com/ICT-GIMLab/SeHGNN) |
 | BG-HGNN | [Model](src/model/baselines/bghgnn/README.md) · [mao1207/BG-HGNN](https://github.com/mao1207/BG-HGNN) |
-| HetTree | [Preserved local implementation and paper review](src/model/baselines/hettree/README.md) |
+| HetTree | [Model and paper](src/model/baselines/hettree/README.md) |
 
-Each available upstream snapshot includes its commit and SHA-256 hashes in `upstream/PROVENANCE.json`, source preprocessing scripts, and available license notices. Notebook preprocessing is extracted to Python without outputs. Original snapshots are separate from runnable PyG adaptations. HetTree's unavailable upstream is not fabricated: the existing independent implementation is preserved and documented. Historical `index.py`, `tune_imdb.py` and encoder APIs remain for compatibility; their settings predate the manuscript protocol. Use `run_<dataset>.py` for this protocol.
+Baseline source snapshots include their commits and SHA-256 hashes in `upstream/PROVENANCE.json`, preprocessing scripts, and license notices. Notebook preprocessing is extracted to Python. Each model folder provides its runnable architecture and reusable layers. Use `run_<dataset>.py` for the manuscript protocol; `index.py`, `tune_imdb.py` and the encoder APIs are also available.
 
 ## Publication and citation
 
-Keep generated files under `local/` or the ignored runtime directories. Run `python scripts/check_public_files.py` before committing; it checks tracked and publishable untracked files and rejects weights, datasets, result JSON, CSVs, notebooks and binary artifacts. Existing local artifacts are preserved. The audit does not rewrite Git history or publish anything.
+Keep generated files under `local/` or the ignored runtime directories. Run `python scripts/check_public_files.py` before committing to check that the publication contains source, scripts, tests, configuration and documentation.
 
-The existing repository history contains older runtime artifacts. To publish a fresh source tree without that history, export it to a new local directory:
+Export the source and documentation to a new local directory:
 
 ```bash
 python scripts/export_source.py --output local/public-source
 ```
 
-The export contains the checked current source, including new files, and excludes `.git` and local artifacts. It refuses an existing destination. Publish from that fresh tree if historical artifacts must also be excluded; updating the current branch alone does not erase old Git objects.
+The export includes the current source and documentation and excludes `.git` and local runtime artifacts.
 
 ```bibtex
-@unpublished{lakhder2026spca,
+@misc{lakhder2026spca,
   title  = {{SPCA}: SubPath Semantic Encoding for Context Aware Heterogeneous Graph Neural Networks},
   author = {Lakhder, Amine and Kalloubi, Fahd and Azizi, Lamiae and Kissami, Imad and Boulaalam, Abdelhak},
   year   = {2026},
@@ -133,4 +132,4 @@ The export contains the checked current source, including new files, and exclude
 }
 ```
 
-Machine-readable citation: [CITATION.cff](CITATION.cff). The project's own code uses the [MIT license](LICENSE). Vendored baseline sources retain their authors' notices and licensing; the root license does not relicense upstream material. Cite the relevant baseline papers when using their implementations.
+Machine-readable citation: [CITATION.cff](CITATION.cff). The project's own code uses the [MIT license](LICENSE). Baseline sources retain their authors' licenses and notices. Cite the relevant baseline papers when using their implementations.

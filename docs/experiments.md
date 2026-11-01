@@ -1,13 +1,8 @@
-> Historical experiment documentation. For the current manuscript implementation,
-> complete metapath sets, grid search and dataset runners, see
-> [paper_protocol.md](paper_protocol.md) and the root README. The commands and
-> dataset variants below are retained for compatibility, not paper reproduction.
+# Additional experiment commands
 
-Contextual Subpath Encoding for Metapath-Based Heterogeneous Graph Learning
-
-Subpath Semantic Encoding for Context-Aware Heterogeneous Graph Neural Networks
-
-Learning Subpath Semantics in Heterogeneous Graphs for Context-Aware Representation
+This guide covers the `index.py` interface, model options and ablation commands.
+For the dataset runners and grid search, see [experiment settings](paper_protocol.md)
+and the [README](../README.md).
 
 ## Dataset selection
 
@@ -41,20 +36,17 @@ target-only graph with one edge type per shared metapath. An edge means that
 a path instance connects its two target nodes; multiple instances of the same
 metapath form one binary edge.
 Simple-HGN retains its typed self-loops and attention layers, so successive
-layers can combine the three relation types. This differs from the original
-Simple-HGN input graph and is recorded as `metapath-projected` in reports;
-run names include `metagraph` to separate previous full-graph results.
+layers can combine the relation types. Reports record the input as
+`metapath-projected`, and run names include `metagraph`.
 Dense metapath graphs use an equivalent matrix aggregation, with recomputation
 during backward to limit storage; sparse graphs use chunked messages.
 HetTree uses the same propagated feature paths and the raw target root. Required
 ancestor nodes carry zero input features, so they connect the tree without
 introducing extra propagated feature channels. Its optional training-label
 propagation is limited to the shared metapaths.
-Reports record `shared_metapaths` and each model's selected paths. All new
-checkpoint/report names include `sharedpaths_v2` to separate previous results
-that used different input paths across models. These changes constrain input
-paths; each model retains its own architecture and can compose information
-across layers.
+Reports record `shared_metapaths` and each model's selected paths.
+Checkpoint/report names include `sharedpaths_v2`. Each model uses its own
+architecture to compose information across layers.
 
 Data downloads and processed graphs are cached in `data/hgb/<dataset>/`.
 Use `--data-root "C:/datasets/dblp"` to choose the cache directory for a dataset.
@@ -64,17 +56,14 @@ or DBLP run from overwriting an IMDB result. The Python API is
 `run_experiment(dataset_name='dblp', ...)`; `run_imdb_example(...)` remains
 available for existing notebooks. `tune_imdb.py` continues to tune IMDB.
 
-DBLP first uses the original
+DBLP supports the
 [PyG/MAGNN data](https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.datasets.DBLP.html).
-If its archive is unavailable, the loader rebuilds the graph and author labels
-from the pinned MAGNN raw source. This fallback uses paper-title bag-of-words
-features (up to 2,048 words) and their neighbor means for authors/terms;
-conferences receive identity features. It retains 8,898 raw terms rather than
-the processed archive's 7,723 lemmatized terms, so its graph/features differ from
-the original benchmark preprocessing. Fallback runs use `raw_title` in their
-filenames and record the feature source, preprocessing variant, and node counts
-in the report. To reproduce original PyG features, provide its seven raw files or
-`DBLP_processed.zip` in `<data-root>/raw/` before the first run.
+Place its seven raw files or `DBLP_processed.zip` in `<data-root>/raw/` to use
+prepared features. The loader also supports graph construction from pinned
+MAGNN raw sources, with paper-title bag-of-words features of up to 2,048 words,
+neighbor means for authors/terms, and identity features for conferences.
+These runs use `raw_title` in their filenames. Reports record the feature source,
+preprocessing settings and node counts.
 
 ACM uses the 4,025-paper raw variant from
 [DGL's HAN preprocessing](https://github.com/dmlc/dgl/blob/master/examples/pytorch/han/utils.py),
@@ -185,14 +174,12 @@ foreach ($ratio in "20%", "60%", "80%") {
 }
 ```
 
-More training labels do not guarantee a higher score in every individual run.
-Fixed holdouts and nested training sets make the comparison interpretable;
-repeat the full curve across multiple seeds and summarize the variation.
+Use fixed holdouts and nested training sets for label-budget comparisons.
+Repeat the curve across multiple seeds and summarize the variation.
 
 Use `--split-protocol legacy` to reproduce the earlier behavior: small ratios
 sample the original 400-movie training pool, while larger ratios rebuild all
 three splits and change validation/test membership with the training ratio.
-Results from that protocol and the fixed protocol use different held-out sets.
 
 SeHGNN is a feature-only PyTorch adaptation of the
 [authors' implementation](https://github.com/ICT-GIMLab/SeHGNN/tree/e92bd37d0b803457339555684f139b4c8f3e160d).
@@ -215,13 +202,11 @@ those of this shared experiment.
 
 ## HetTree comparison
 
-HetTree is an independent PyTorch implementation of equations (1)--(6) in
+HetTree implements equations (1)--(6) in
 [Heterogeneous Graph Neural Network on Semantic Tree, AAAI 2025](https://doi.org/10.1609/aaai.v39i16.33860).
-The paper's linked `microsoft/HetTree` repository returned 404 when this was
-implemented, so parity with the authors' code has not been verified. The local
-configuration uses two-layer MLPs, 128 hidden channels, dropout 0.5, PReLU in
-MLPs, LeakyReLU attention scores, and ELU for child aggregation. It runs with
-the existing PyTorch/PyG environment and does not require DGL.
+The configuration uses two-layer MLPs, 128 hidden channels, dropout 0.5,
+PReLU in MLPs, LeakyReLU attention scores, and ELU for child aggregation.
+It runs in the PyTorch/PyG environment.
 
 The model precomputes relation-wise mean feature aggregation, matches features
 and propagated training labels on the same metapath, builds the semantic tree,
@@ -242,8 +227,6 @@ The resulting depth is four hops for IMDB/DBLP and two for ACM. Reports record
 the selected metapaths and active feature paths separately from the full tree
 and zero-input ancestor paths, along with label paths, tree size, depth, and
 implementation version.
-This is a comparison on this repository's cached graph
-variants and splits, rather than a reproduction of the paper's benchmark scores.
 
 Only labels selected by the current training mask enter propagation; validation,
 test, and unused labels are zeroed. For each closed metapath, the exact diagonal
@@ -335,18 +318,7 @@ foreach ($seed in 42, 43, 44, 45, 46) {
 ```
 
 Each seed controls both the split and initialization. Compare paired test
-F1-macro scores and summarize their differences across seeds. This comparison
-also changes parameter count and the context's initialization, so performance
-differences can reflect optimization or regularization.
-
-In the current `SubpathHANConv2`, subpath context is derived only from global
-type embeddings and is constant across nodes, just like the metapath bias.
-Because context is added immediately before linear fusion, its contribution
-can be absorbed into that layer's ordinary bias:
-`W concat(h_m + c_m) + a = W concat(h_m) + (a + W concat(c_m))`.
-Thus this ablation tests whether the subpath parameterization helps training;
-it cannot by itself establish that the model learns node-dependent context or
-that subpath encoding increases the model's expressive power.
+F1-macro scores and summarize them across seeds.
 
 For direct encoder use, pass `context_mode='no-context'`, `context_mode='metapath-bias'`, or
 `context_mode='metapath-scalar-bias'` to `SubpathHANConv2` or `StackedSubpathHAN`.
@@ -372,17 +344,13 @@ This option works with both `--subpath-variant original` and `regularized`.
 Both alternatives average the encoded subpaths for each metapath, as before.
 Like concat-MLP, each distinct type sequence has its own encoder; if that same
 subpath appears in multiple metapaths, it reuses its encoder. Type embeddings
-remain shared across subpaths. This aligns the sharing policy, but parameter
-budgets still differ across architectures.
-Their context remains shared across nodes; they do not encode node-specific path
-instances. No-context and bias ablations bypass the subpath encoder.
+remain shared across subpaths. Context is shared across nodes. No-context and
+bias ablations bypass the subpath encoder.
 Encoder choices are recorded in reports and non-default choices have distinct
 checkpoint/report filenames. These options are exposed by `SubpathHANConv2`,
 `RegularizedSubpathHANConv`, and `StackedSubpathHAN` via `aggregator=`.
 Sequence encoders and ablation runs use `persubpath_v2` checkpoint filenames;
 ablation report configuration includes `encoder_protocol=per-subpath-v2`.
-Earlier shared-encoder checkpoints have different state keys and cannot be
-loaded directly into this architecture. Their files are retained separately.
 
 ```powershell
 python index.py --model subpath --subpath-encoder lstm

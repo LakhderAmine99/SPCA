@@ -1,6 +1,6 @@
 # SPCA
 
-Paper: *SPCA: SubPath Semantic Encoding for Context Aware Heterogeneous Graph Neural Networks* (Lakhder et al., 2026 manuscript). [Project source](https://github.com/LakhderAmine99/SPCA), [citation](../../../CITATION.cff).
+Paper: *SPCA: SubPath Semantic Encoding for Context Aware Heterogeneous Graph Neural Networks* (Lakhder et al., 2026 preprint). [Project source](https://github.com/LakhderAmine99/SPCA), [citation](../../../CITATION.cff).
 
 `model.py` supplies the classifier. `layers.py` contains the current method:
 
@@ -20,6 +20,6 @@ logits = model(x_dict, metapath_edge_index_dict=prepared_metapath_edges)
 
 PyG edge indices use `[source, destination]` rows and `torch.long` IDs. Prepared graph keys are full node-type tuples. One layer returns embeddings for one receiving type. LP uses one encoder per endpoint and the final dot-product decoder. Context subpaths must be nonempty; both even- and odd-hop metapaths are accepted.
 
-The default is endpoint-neighbor aggregation, intermediate-only Concat+MLP context, and both LayerNorm stages. `heads` on the classifier is retained for historical constructors; the paper's dot-product score has no independent attention heads. For ablations set `aggregator`, `context_mode`, `context_positions`, or `normalization`, or pass explicit `subpaths_dict` to the layer. `reset_parameters()` resets the current architecture. Attention batching preserves exact neighborhood normalization.
+The default is endpoint-neighbor aggregation, intermediate-only Concat+MLP context, and both LayerNorm stages. Attention uses a single full-vector dot-product score. For ablations set `aggregator`, `context_mode`, `context_positions`, or `normalization`, or pass explicit `subpaths_dict` to the layer. `reset_parameters()` resets the architecture. Attention batching preserves exact neighborhood normalization.
 
-`encoders.py` preserves historical hop-wise and regularized/stacked APIs for compatibility. Select `variant='legacy'`, `'regularized'`, or `'stacked'` explicitly; these are not the default manuscript method. See [protocol notes](../../../docs/paper_protocol.md) for settings and tests.
+`encoders.py` provides hop-wise, regularized and stacked encoder variants. Select `variant='legacy'`, `'regularized'`, or `'stacked'` explicitly. See [experiment settings](../../../docs/paper_protocol.md) for configuration and tests.

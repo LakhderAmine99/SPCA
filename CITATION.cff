@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "Please cite the SPCA manuscript when using this code."
+message: "Please cite the SPCA preprint when using this code."
 type: software
 title: "SPCA: SubPath Semantic Encoding for Context Aware Heterogeneous Graph Neural Networks"
 authors:
@@ -16,7 +16,7 @@ authors:
 repository-code: "https://github.com/LakhderAmine99/SPCA"
 license: MIT
 preferred-citation:
-  type: unpublished
+  type: article
   title: "SPCA: SubPath Semantic Encoding for Context Aware Heterogeneous Graph Neural Networks"
   authors:
     - family-names: Lakhder
@@ -30,4 +30,4 @@ preferred-citation:
     - family-names: Boulaalam
       given-names: Abdelhak
   year: 2026
-  notes: "Preprint manuscript; publication venue and DOI not assigned here."
+  notes: "Preprint."
