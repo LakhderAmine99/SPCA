@@ -1,0 +1,74 @@
+{
+  "repository": "https://github.com/Jhy1993/HAN",
+  "commit": "71bac29a07fb8fab908d50a806a7bc38aa6c6611",
+  "scope": "Source, preprocessing scripts, notices and upstream documentation only.",
+  "files": [
+    {
+      "path": "README.md",
+      "original_path": "README.md",
+      "sha256": "e0861a2cd0808d0d0793baa02c7b3dd25bff243f70a2fc6665cd5303913ff8ed",
+      "notebook_code_only": false
+    },
+    {
+      "path": "ex_acm3025.py",
+      "original_path": "ex_acm3025.py",
+      "sha256": "58fa9a40e76baac4276328ca9a5800b8e2a1bf6cfeb0bb94bbc0a10fdaa5b822",
+      "notebook_code_only": false
+    },
+    {
+      "path": "jhyexp.py",
+      "original_path": "jhyexp.py",
+      "sha256": "64e239e477d95ac870d8878c54d0b2a26aa82231428c251671e51826110c8734",
+      "notebook_code_only": false
+    },
+    {
+      "path": "models/__init__.py",
+      "original_path": "models/__init__.py",
+      "sha256": "e99095dab4ea54d03be9aee3852c32f1c452311c5d4c717f2ebdb0f05693af19",
+      "notebook_code_only": false
+    },
+    {
+      "path": "models/base_gattn.py",
+      "original_path": "models/base_gattn.py",
+      "sha256": "cb4b35fb8ce69e9e20a28587a38df92a47eaa6a4264c26c7fcb86aa885e7a4ad",
+      "notebook_code_only": false
+    },
+    {
+      "path": "models/gat.py",
+      "original_path": "models/gat.py",
+      "sha256": "1465f23e5c993e99c0ad3721b7af17ebd3da3aa8e9f035ce7a5589b7334b652e",
+      "notebook_code_only": false
+    },
+    {
+      "path": "preprocess_dblp.py",
+      "original_path": "preprocess_dblp.py",
+      "sha256": "e843f61f4cf8cb629288db5bef17d85894b9ac72374f038073cf236a2fbc6709",
+      "notebook_code_only": false
+    },
+    {
+      "path": "utils/__init__.py",
+      "original_path": "utils/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notebook_code_only": false
+    },
+    {
+      "path": "utils/layers.py",
+      "original_path": "utils/layers.py",
+      "sha256": "4d89dc2b41f7efac3409122fe695e2d573bcfbb5b885b265d5c3fedda6c3ce1a",
+      "notebook_code_only": false
+    },
+    {
+      "path": "utils/process.py",
+      "original_path": "utils/process.py",
+      "sha256": "79d39de998a35a9f650a4eb7fa1c9daa735614d10df0acac3db9e238af5185f8",
+      "notebook_code_only": false
+    },
+    {
+      "path": "utils/process_ppi.py",
+      "original_path": "utils/process_ppi.py",
+      "sha256": "879aec70a608520592d0315f524d597cbfa488ba89ad4e56481e196394d45692",
+      "notebook_code_only": false
+    }
+  ],
+  "tree": "d5a4d06727e69f4f3459e21096938c1f38aa9e28"
+}

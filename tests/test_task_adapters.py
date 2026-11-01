@@ -84,11 +84,9 @@ def test_dot_decoder_exact_scores_empty_queries_and_invalid_indices():
 
 
 @pytest.mark.parametrize('name', ['magnn', 'heco', 'gtc', 'bg-hgnn'])
-def test_upstream_launchers_are_not_misrepresented_as_task_models(name):
-    with pytest.raises(NotImplementedError, match='upstream task'):
-        build_nc(name, 2)
-    with pytest.raises(NotImplementedError, match='upstream task'):
-        build_lp(name, 8)
+def test_previously_external_models_now_have_native_task_classes(name):
+    from src.model.baselines.registry import get_baseline
+    assert issubclass(get_baseline(name), nn.Module)
 
 
 def test_nc_embedding_adapter_and_lp_label_guard():

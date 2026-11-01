@@ -1,187 +1,136 @@
-# SPCA: Subpath Semantic Encoding
+# SPCA
 
-Context-aware heterogeneous graph neural networks, controlled SPCA variants,
-and a module for each baseline in the paper.
+Source code for **SPCA: SubPath Semantic Encoding for Context Aware Heterogeneous Graph Neural Networks**, by Amine Lakhder, Fahd Kalloubi, Lamiae Azizi, Imad Kissami, and Abdelhak Boulaalam.
 
-## Repository layout
+SPCA combines attention over metapath endpoint neighborhoods with learned embeddings of the internal node-type sequence. The implementation follows Sections 4 and 7.2 of the manuscript: typed feature projection, dot-product neighbor attention, structural LayerNorm, shared type embeddings and a dedicated two-layer MLP per distinct subpath, additive context fusion followed by LayerNorm, and concatenation with a final linear projection.
 
-```text
-src/NC/                 Node-classification model adapters
-src/LP/                 Link-prediction adapters and edge decoders
-src/model/spca/          SPCA classifier, encoders, and ablations
-src/model/baselines/     One module per baseline and lazy registry
-src/model/model.py      Compatibility import for SPCA
-src/{imdb,dblp,acm}.py   Dataset loaders
-src/datasets.py         Shared dataset/metapath configuration
-src/splits.py           Reproducible train/validation/test splits
-src/checkpoint.py       Local checkpoint persistence
-index.py                Existing experiment CLI
-tests/                 Unit and regression tests
-```
+This repository contains source, scripts, tests, configuration and documentation. Datasets, trained parameters, experiment outputs, CSVs and figures remain in ignored local directories. No reproduced benchmark scores or pretrained weights are bundled.
 
-Notebooks, trained weights, datasets, generated reports, archives, editor files,
-and historical exploratory scripts are **local-only**. Their working copies are
-preserved, ignored, and removed from the Git index. Put new scratch work under
-`local/` and external code under `third_party/`. Both directories are ignored.
-Do not force-add ignored artifacts. Removing files from the index affects the
-next commit; it does not erase old commits or change the remote until published.
+## Setup
 
-## Task adapters: NC and LP
+Use Python 3.11 or newer and a PyTorch installation appropriate for your CPU/CUDA environment.
 
-Both task packages reuse `src/model/`; architecture code is not duplicated.
-Factories support SPCA (including its variants), GCN, GAT, HAN, RGCN, HGT,
-Simple-HGN/HGB, SeHGNN, and HetTree. Model-specific constructor arguments and
-forward inputs remain the same as in the shared modules.
-
-```python
-from src.NC import build_model as build_nc
-from src.LP import build_model as build_lp
-
-nc = build_nc("gcn", num_classes=3,
-              in_channels=32, hidden_channels=64, num_layers=2)
-node_logits = nc(x, train_edge_index)
-
-lp = build_lp("gcn", embedding_channels=64, decoder="mlp",
-              in_channels=32, hidden_channels=64, num_layers=2)
-link_logits = lp(x, train_edge_index, edge_label_index=query_edges)
-```
-
-NC returns node logits for cross entropy on the training mask. `NodeClassifier`
-can also add a classification head to a custom embedding encoder. The NC factory
-uses each existing model's classification head directly.
-
-LP sets the shared model's output width to `embedding_channels` and trains that
-output projection as an embedding head. Existing model output transforms are
-retained, including Simple-HGN normalization. It adds either an ordered-endpoint
-MLP (`decoder="mlp"`, default) or symmetric dot product (`decoder="dot"`). Outputs
-are raw link logits for `binary_cross_entropy_with_logits`; apply sigmoid only
-when probabilities are needed. This is a task adaptation, not a claim to reproduce
-the original paper's LP setup.
-
-For cross-type links, use a separate encoder for each endpoint type:
-
-```python
-from src.LP import LinkPredictor
-
-lp = LinkPredictor(source_encoder, embedding_channels=64,
-                   destination_encoder=destination_encoder)
-link_logits = lp(
-    *source_args, edge_label_index=query_edges,
-    destination_inputs=(destination_args, destination_kwargs),
-    **source_kwargs,
-)
-```
-
-Each encoder must return a matrix with 64 columns in this example. Query edges
-have shape `[2, num_links]`, dtype `torch.long`, and index rows of the source and
-destination output matrices respectively. For target-only architectures, configure
-one model per endpoint target type, including that target's metapaths/features.
-
-LP graph splits and negative sampling belong to the experiment: exclude held-out
-positive edges and their reverse relations before message passing or cached
-metapath/feature preparation. Rebuild SeHGNN, HetTree, and Simple-HGN caches from
-that training graph. Query edges are passed only to the decoder; the adapter does
-not remove them from supplied graph inputs. HetTree LP rejects NC label-propagation
-inputs. Supply positive and sampled negative query edges with binary labels.
-
-MAGNN, HeCo, GTC, and BG-HGNN remain external integrations. Both factories reject
-their process launchers explicitly; they require upstream task-specific encoders
-before they can use these adapters. The existing `index.py` NC CLI remains intact;
-these packages add Python APIs, not an LP dataset/training CLI.
-
-## SPCA and variants
-
-```python
-from src.model.spca import SPCA
-
-model = SPCA(
-    in_channels_dict, hidden_channels=128, num_classes=3,
-    metadata=metadata, metapaths=metapaths, subpaths_dict=subpaths_dict,
-    variant="base", context_mode="subpath", aggregator="concat-mlp",
-)
-logits = model(x_dict, edge_index_dict)
-```
-
-Variants: `base`, `regularized`, and `stacked`. Context ablations: `subpath`,
-`no-context`, `metapath-bias`, and `metapath-scalar-bias`. Subpath aggregators:
-`concat-mlp`, `mean`, `lstm`, and `transformer`. Historical encoders are exported
-under their existing names; imports from `index` still work. State-dict names
-inside the existing encoders have been preserved.
-
-## Baselines
-
-| Model | Module under `src.model.baselines` | Implementation / input | Pipeline |
-| --- | --- | --- | --- |
-| GCN | `gcn` | PyG GCN; homogeneous features and edges | E2E |
-| GAT | `gat` | PyG GAT; homogeneous features and edges | E2E |
-| HAN | `han` | PyG HANConv classifier; precomputed metapath graphs | Pre |
-| MAGNN | `magnn` | Official-code process integration | Pre |
-| RGCN | `rgcn` | PyG RGCNConv; packed features, edges, relation IDs | E2E |
-| HGT | `hgt` | PyG HGTConv; original typed graph | E2E |
-| GTC | `gtc` | Official-code process integration | Pre |
-| HeCo | `heco` | Official-code process integration | Pre |
-| HGB / Simple-HGN | `simplehgn` / `hgb` | Existing local adaptation | Input-dependent |
-| SeHGNN | `sehgnn` | Existing feature-only adaptation | Pre |
-| BG-HGNN | `bghgnn` | External contract; verified code still required | Pre |
-| HetTree | `hettree` | Existing semantic-tree implementation | Pre |
-
-E2E means no separate algorithmic preprocessing/postprocessing stage; normal
-input packing is excluded. Pre identifies a separate feature/path preparation
-stage. These labels describe the documented input pipeline, not every possible
-implementation. Simple-HGN on the original graph is E2E; the current experiment
-runner uses metapath projection and therefore requires Pre. Contrastive methods
-also require their own representation-learning and downstream evaluation stages.
-
-```python
-from src.model.baselines.registry import BASELINES, get_baseline
-GCN = get_baseline("gcn")
-model = GCN(in_channels=32, hidden_channels=64, num_layers=2, out_channels=3)
-logits = model(x, edge_index)
-```
-
-Model classes follow the input contracts in their modules. Homogeneous inputs
-must use one common feature width and globally offset node IDs; discard relation
-labels for GCN/GAT. RGCN uses fixed relation IDs. HGT receives `x_dict` and
-`edge_index_dict`. HAN receives target features and a dictionary of already
-composed target-to-target metapath graphs. No loader or download runs on import.
-
-MAGNN, HeCo, and GTC retain the authors' preprocessing, objectives, and evaluation
-through process integrations. Obtain the official code in an ignored local
-checkout and install its dependencies in a separate environment:
-
-- [MAGNN](https://github.com/cynricfu/MAGNN)
-- [HeCo](https://github.com/liun-online/HeCo)
-- [GTC](https://github.com/PHD-lanyu/GTC)
-- [BG-HGNN paper](https://arxiv.org/abs/2403.08207): no verified upstream checkout
-  is bundled; specify your verified implementation and its entrypoint explicitly.
-
-```powershell
-python -m src.model.baselines.magnn --repo third_party/MAGNN --entrypoint run_DBLP.py -- --help
-python -m src.model.baselines.heco --repo third_party/HeCo -- acm --gpu=0
-python -m src.model.baselines.gtc --repo third_party/GTC -- dblp
-python -m src.model.baselines.bghgnn --repo third_party/BG-HGNN --entrypoint path/to/verified_script.py -- --help
-```
-
-Use `--python path/to/upstream/python` to select the upstream environment.
-Launchers fail explicitly when code is absent; they never substitute another
-architecture. Record the upstream commit and prepare identical data/splits before
-comparing results. The launchers do **not** translate this project's shared masks
-into upstream formats, and are not `nn.Module` classes. No new baseline scores or
-paper-parity claims are implied by this organization.
-
-## Existing experiments and validation
-
-The existing CLI still supports its SPCA variants, SeHGNN, Simple-HGN, and HetTree;
-new baseline modules are separate Python APIs or upstream launchers, not additional
-`index.py --model` choices. Full prior experiment instructions and adaptation
-limitations are preserved in [docs/experiments.md](docs/experiments.md).
-
-```powershell
-python index.py --dataset imdb --model subpath --train-ratio "10%"
+```bash
+python -m venv .venv
+# Linux/macOS: source .venv/bin/activate
+# PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 python -m pytest -q
 python scripts/check_public_files.py
 ```
 
-The checked local environment is Python with PyTorch 2.12.1 and PyG 2.8.0.
-Install `requirements.txt` in an environment appropriate for your CPU/CUDA setup.
-External integrations use their upstream environments instead.
+The runnable adapters use PyTorch and PyG; DGL and TensorFlow are not required. Original baseline snapshots have their own dependencies and are retained for reference. Tests use synthetic graphs and mocked downloads; they do not execute benchmark experiments.
+
+## Run commands
+
+Inspect the complete configuration without loading a dataset, importing PyTorch, or training:
+
+```bash
+python run_dblp.py --dry-run
+python run_imdb.py --dry-run
+python run_acm.py --dry-run
+python run_lastfm.py --dry-run
+python run_movielens.py --dry-run
+```
+
+When you are ready to run experiments, remove `--dry-run`. Each script includes SPCA and all 12 baselines, performs the applicable Cartesian grid search over three tuning seeds, then evaluates five reporting seeds. Defaults are 500 epochs, patience 100, Adam, and 128-dimensional final embeddings. NC checkpoints maximize validation Macro-F1, with lower validation loss breaking ties. Configurations are ranked by mean validation Macro-F1 across tuning seeds. Test metrics are computed once per reporting run at its selected checkpoint. Reports include mean and **sample** standard deviation.
+
+```bash
+# Complete main-protocol comparison: 20%, 40%, 60% of each class's training pool
+python run_dblp.py
+python run_imdb.py
+
+# Low-label protocol: fractions of all labeled nodes per class, outside holdouts
+python run_dblp.py --protocol low-label --train-ratios 5% 10%
+
+# Select models, seeds, data location and fixed hyperparameters
+python run_imdb.py --models spca han --train-ratios 20% 60% --seeds 42 43 44 45 46 --tuning-seeds 0 1 2 --data-root data/imdb --set learning_rate=0.005 --set spca.aggregator=mean
+
+# Tune first, then report using the saved winning configurations
+python run_dblp.py --phase tune --output local/dblp_tuning
+python run_dblp.py --phase report --selected-config local/dblp_tuning/selected.json
+
+# Explicit single-configuration runs (skip search; not a tuned paper result)
+python run_dblp.py --phase report --models spca --set hidden_channels=128 --set dropout=0.5
+
+# K-means on the selected NC embeddings, reporting NMI and ARI
+python run_dblp.py --task clustering
+
+# LP: LastFM 70/10/20; MovieLens-1M 80/10/10; one negative per positive
+python run_lastfm.py
+python run_movielens.py
+```
+
+Use `--help` for all settings. `--set MODEL.KEY=VALUE` accepts model-specific options, including SPCA's context positions, normalization and encoder; MAGNN's instance encoder and sample cap; GTC's hop count and Transformer depth; HetTree's training-label propagation; and embedding/head widths. Values accept JSON (`true`, `false`, `null`, numbers) or plain strings. `--config configs/paper.json` supplies protocol defaults; CLI flags override them. `--grid configs/grid.json` supplies search arrays; fixed `--set` values remove their axes from the search. Per-head widths are searched only for architectures with a separate head-width parameter. See [the protocol and adaptation notes](docs/paper_protocol.md).
+
+## Data and reproducibility
+
+The exact Table 3 metapaths are defined in [config.py](src/experiments/config.py). All methods use these selected paths. Methods without native metapaths receive their induced endpoint graphs; dynamic path expansion is disabled. MAGNN also retains ordered path instances. LP removes validation/test interactions and their reverses **before** preparing paths, propagated features, positives or other encoder inputs. Negative pairs exclude every observed interaction.
+
+NC retains the loader's fixed validation/test sets by default. Main ratios sample within its original training pool; low-label ratios count all labeled nodes per class. `--val-count`, `--test-count`/`--test-ratio`, and `--split-seed` explicitly replace those holdouts. `--graph path/to/graph.pt` accepts a trusted local `HeteroData` graph with typed features, edges, labels and split masks. `--metapaths path/to/paths.json` accepts a target-type-to-path-list mapping.
+
+**ACM requires attention to the variant.** The manuscript lists 3,025 papers, 5,835 authors, 56 subjects and 1,902 feature columns; the existing raw DGL ACM loader produces a different, approximately 4,025-paper graph. The runner refuses to identify that graph as the paper benchmark. Supply the matching prepared graph, or explicitly request `--allow-data-mismatch` for a separately recorded variant:
+
+```bash
+python run_acm.py --graph local/acm3025_graph.pt
+python run_acm.py --allow-data-mismatch
+```
+
+The same validation catches DBLP's raw-title fallback, whose term count/features differ from the processed benchmark. Graph/feature/split fingerprints, dataset discrepancies, seeds, effective settings and software versions are recorded locally. The manuscript does not give numeric seed lists or all LP feature choices; explicit defaults and remaining assumptions are documented in [paper_protocol.md](docs/paper_protocol.md). This is code-level alignment, not a claim that adapted baselines reproduce published scores.
+
+## Models and layout
+
+```text
+src/model/spca/             SPCA architecture, reusable PyG layers, legacy variants
+src/model/baselines/<name>/ Model architecture, layers, preprocessing, README
+                           upstream/ contains pinned source-only snapshots
+src/experiments/            Configuration, input adapters, splits, training and CLI
+src/graph.py               Exact binary metapath composition and instance sampling
+src/NC/, src/LP/           Reusable task adapters
+run_<dataset>.py           Five dataset entrypoints
+configs/                  Protocol defaults and the manuscript grid
+tests/                    Offline unit/regression tests on synthetic data
+local/, data/             Ignored runtime artifacts and dataset caches
+```
+
+| Model | Documentation and original source |
+| --- | --- |
+| SPCA | [Model and equation mapping](src/model/spca/README.md) |
+| GCN | [Model](src/model/baselines/gcn/README.md) · [tkipf/gcn](https://github.com/tkipf/gcn) |
+| GAT | [Model](src/model/baselines/gat/README.md) · [PetarV-/GAT](https://github.com/PetarV-/GAT) |
+| RGCN | [Model](src/model/baselines/rgcn/README.md) · [tkipf/relational-gcn](https://github.com/tkipf/relational-gcn) |
+| HAN | [Model](src/model/baselines/han/README.md) · [Jhy1993/HAN](https://github.com/Jhy1993/HAN) |
+| MAGNN | [Model](src/model/baselines/magnn/README.md) · [cynricfu/MAGNN](https://github.com/cynricfu/MAGNN) |
+| HGT | [Model](src/model/baselines/hgt/README.md) · [acbull/pyHGT](https://github.com/acbull/pyHGT) |
+| HeCo | [Model](src/model/baselines/heco/README.md) · [liun-online/HeCo](https://github.com/liun-online/HeCo) |
+| GTC | [Model](src/model/baselines/gtc/README.md) · [PHD-lanyu/GTC](https://github.com/PHD-lanyu/GTC) |
+| Simple-HGN / HGB | [Model](src/model/baselines/simplehgn/README.md) · [THUDM/HGB](https://github.com/THUDM/HGB) |
+| SeHGNN | [Model](src/model/baselines/sehgnn/README.md) · [ICT-GIMLab/SeHGNN](https://github.com/ICT-GIMLab/SeHGNN) |
+| BG-HGNN | [Model](src/model/baselines/bghgnn/README.md) · [mao1207/BG-HGNN](https://github.com/mao1207/BG-HGNN) |
+| HetTree | [Preserved local implementation and paper review](src/model/baselines/hettree/README.md) |
+
+Each available upstream snapshot includes its commit and SHA-256 hashes in `upstream/PROVENANCE.json`, source preprocessing scripts, and available license notices. Notebook preprocessing is extracted to Python without outputs. Original snapshots are separate from runnable PyG adaptations. HetTree's unavailable upstream is not fabricated: the existing independent implementation is preserved and documented. Historical `index.py`, `tune_imdb.py` and encoder APIs remain for compatibility; their settings predate the manuscript protocol. Use `run_<dataset>.py` for this protocol.
+
+## Publication and citation
+
+Keep generated files under `local/` or the ignored runtime directories. Run `python scripts/check_public_files.py` before committing; it checks tracked and publishable untracked files and rejects weights, datasets, result JSON, CSVs, notebooks and binary artifacts. Existing local artifacts are preserved. The audit does not rewrite Git history or publish anything.
+
+The existing repository history contains older runtime artifacts. To publish a fresh source tree without that history, export it to a new local directory:
+
+```bash
+python scripts/export_source.py --output local/public-source
+```
+
+The export contains the checked current source, including new files, and excludes `.git` and local artifacts. It refuses an existing destination. Publish from that fresh tree if historical artifacts must also be excluded; updating the current branch alone does not erase old Git objects.
+
+```bibtex
+@unpublished{lakhder2026spca,
+  title  = {{SPCA}: SubPath Semantic Encoding for Context Aware Heterogeneous Graph Neural Networks},
+  author = {Lakhder, Amine and Kalloubi, Fahd and Azizi, Lamiae and Kissami, Imad and Boulaalam, Abdelhak},
+  year   = {2026},
+  note   = {Preprint},
+  url    = {https://github.com/LakhderAmine99/SPCA}
+}
+```
+
+Machine-readable citation: [CITATION.cff](CITATION.cff). The project's own code uses the [MIT license](LICENSE). Vendored baseline sources retain their authors' notices and licensing; the root license does not relicense upstream material. Cite the relevant baseline papers when using their implementations.

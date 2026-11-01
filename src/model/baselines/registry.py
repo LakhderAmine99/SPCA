@@ -15,14 +15,14 @@ BASELINES = {
     'gcn': BaselineSpec('GCN', 'homogeneous', 'pyg', 'E2E'),
     'gat': BaselineSpec('GAT', 'homogeneous', 'pyg', 'E2E'),
     'han': BaselineSpec('HAN', 'metapath', 'local-pyg', 'Pre'),
-    'magnn': BaselineSpec('MAGNN', 'metapath', 'upstream', 'Pre'),
+    'magnn': BaselineSpec('MAGNN', 'metapath', 'local-pyg', 'Pre'),
     'rgcn': BaselineSpec('RGCN', 'relation-aware', 'local-pyg', 'E2E'),
     'hgt': BaselineSpec('HGT', 'relation-aware', 'local-pyg', 'E2E'),
-    'gtc': BaselineSpec('GTC', 'relation-aware', 'upstream', 'Pre'),
-    'heco': BaselineSpec('HeCo', 'advanced', 'upstream', 'Pre'),
+    'gtc': BaselineSpec('GTC', 'relation-aware', 'local-pyg', 'Pre'),
+    'heco': BaselineSpec('HeCo', 'advanced', 'local-pyg', 'Pre'),
     'simplehgn': BaselineSpec('SimpleHGN', 'advanced', 'local-adaptation', 'input-dependent'),
     'sehgnn': BaselineSpec('SeHGNN', 'advanced', 'local-adaptation', 'Pre'),
-    'bghgnn': BaselineSpec('BGHGNN', 'advanced', 'external-required', 'Pre'),
+    'bghgnn': BaselineSpec('BGHGNN', 'advanced', 'local-pyg', 'Pre'),
     'hettree': BaselineSpec('HetTree', 'advanced', 'local-adaptation', 'Pre'),
 }
 ALIASES = {'hgb': 'simplehgn', 'simple-hgn': 'simplehgn', 'bg-hgnn': 'bghgnn'}

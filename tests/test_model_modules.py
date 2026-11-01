@@ -78,5 +78,4 @@ def test_upstream_process_preserves_arguments_and_working_directory():
             runner.command(root, entrypoint='../../outside.py')
         with pytest.raises(FileNotFoundError):
             runner.command(root, entrypoint='missing.py')
-        with pytest.raises(ValueError):
-            get_baseline('bghgnn').command(root)
+        assert issubclass(get_baseline('bghgnn'), torch.nn.Module)

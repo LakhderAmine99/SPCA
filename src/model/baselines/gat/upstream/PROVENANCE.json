@@ -1,0 +1,80 @@
+{
+  "repository": "https://github.com/PetarV-/GAT",
+  "commit": "5af87e7fce2b90ae1cbd621cd58059036a3c7436",
+  "scope": "Source, preprocessing scripts, notices and upstream documentation only.",
+  "files": [
+    {
+      "path": "LICENSE",
+      "original_path": "LICENSE",
+      "sha256": "24c1b8432cc4a23404c1da4944776627ae69a41add27adee2d2b4fd18c36662d",
+      "notebook_code_only": false
+    },
+    {
+      "path": "README.md",
+      "original_path": "README.md",
+      "sha256": "6c9a86a79e351301f3e19dede99099a9b068d54b85b83ea5932002262ff45e6f",
+      "notebook_code_only": false
+    },
+    {
+      "path": "execute_cora.py",
+      "original_path": "execute_cora.py",
+      "sha256": "ce4da53957e705554374662cbf3a8e8abc6ebdb0017ddb927622da105623d55a",
+      "notebook_code_only": false
+    },
+    {
+      "path": "execute_cora_sparse.py",
+      "original_path": "execute_cora_sparse.py",
+      "sha256": "a275959c68ed3bfca39d1eceecd14a8100a8fa3742e6c66dc41a93da2ceb8b8a",
+      "notebook_code_only": false
+    },
+    {
+      "path": "models/__init__.py",
+      "original_path": "models/__init__.py",
+      "sha256": "25e21d9d1c8f1440a069b891fbb8ca7263925ecc3149197779235610604d0a54",
+      "notebook_code_only": false
+    },
+    {
+      "path": "models/base_gattn.py",
+      "original_path": "models/base_gattn.py",
+      "sha256": "104510d35f4b88294ac9963ccfa808d5a49fd5ce093b46b434771a6f432ae5e7",
+      "notebook_code_only": false
+    },
+    {
+      "path": "models/gat.py",
+      "original_path": "models/gat.py",
+      "sha256": "bbc44f210b08145415269d5562a783e4bd84f594cc118fb5fd53397df72d4788",
+      "notebook_code_only": false
+    },
+    {
+      "path": "models/sp_gat.py",
+      "original_path": "models/sp_gat.py",
+      "sha256": "b95f809e611166aa2a1c155958610687e71c9df241ecfb3bd601b0a1a7f55cb5",
+      "notebook_code_only": false
+    },
+    {
+      "path": "utils/__init__.py",
+      "original_path": "utils/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notebook_code_only": false
+    },
+    {
+      "path": "utils/layers.py",
+      "original_path": "utils/layers.py",
+      "sha256": "11aff0e9821e9cf4698870e5702a66e874cd02c864301aafb738bf7d1d0801bb",
+      "notebook_code_only": false
+    },
+    {
+      "path": "utils/process.py",
+      "original_path": "utils/process.py",
+      "sha256": "f26aeddd3711c078a6844010cbdf94053dbce0d3342520e3fae817e55d61a7f5",
+      "notebook_code_only": false
+    },
+    {
+      "path": "utils/process_ppi.py",
+      "original_path": "utils/process_ppi.py",
+      "sha256": "879aec70a608520592d0315f524d597cbfa488ba89ad4e56481e196394d45692",
+      "notebook_code_only": false
+    }
+  ],
+  "tree": "6a36b4bcf0897f4c776cb153b1a4c1b4c610f9af"
+}

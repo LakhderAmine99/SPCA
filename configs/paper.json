@@ -1,0 +1,12 @@
+{
+  "epochs": 500,
+  "patience": 100,
+  "runs": 5,
+  "seed": 42,
+  "tuning_seeds": [0, 1, 2],
+  "protocol": "main",
+  "phase": "all",
+  "negatives_per_positive": 1,
+  "save_checkpoints": false,
+  "overrides": []
+}

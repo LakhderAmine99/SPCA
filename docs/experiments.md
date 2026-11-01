@@ -1,3 +1,8 @@
+> Historical experiment documentation. For the current manuscript implementation,
+> complete metapath sets, grid search and dataset runners, see
+> [paper_protocol.md](paper_protocol.md) and the root README. The commands and
+> dataset variants below are retained for compatibility, not paper reproduction.
+
 Contextual Subpath Encoding for Metapath-Based Heterogeneous Graph Learning
 
 Subpath Semantic Encoding for Context-Aware Heterogeneous Graph Neural Networks

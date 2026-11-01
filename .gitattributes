@@ -1,0 +1,3 @@
+* text=auto eol=lf
+# Keep original snapshot bytes identical to their recorded SHA-256 hashes.
+src/model/baselines/*/upstream/** -text

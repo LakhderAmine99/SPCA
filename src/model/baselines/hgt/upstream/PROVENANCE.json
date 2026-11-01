@@ -1,0 +1,170 @@
+{
+  "repository": "https://github.com/acbull/pyHGT",
+  "commit": "85eaccd482bc1d1af56c2de297b6e3a88b96d5cd",
+  "scope": "Source, preprocessing scripts, notices and upstream documentation only.",
+  "files": [
+    {
+      "path": "Docker/README.md",
+      "original_path": "Docker/README.md",
+      "sha256": "58a6e30dd32d6c2453dc811e283cd7b9b0484ce19d8746448e9e4868fed1a8b4",
+      "notebook_code_only": false
+    },
+    {
+      "path": "LICENSE",
+      "original_path": "LICENSE",
+      "sha256": "54572f6f2d0175ca56f42a023739f6560dd0ad79ae4ee578553bddd87862c015",
+      "notebook_code_only": false
+    },
+    {
+      "path": "OAG/preprocess_OAG.py",
+      "original_path": "OAG/preprocess_OAG.py",
+      "sha256": "3203b860c2515a80a7828540c1a4f0cae8229694280de6c04fadb0b66eb879f1",
+      "notebook_code_only": false
+    },
+    {
+      "path": "OAG/pyHGT/__init__.py",
+      "original_path": "OAG/pyHGT/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notebook_code_only": false
+    },
+    {
+      "path": "OAG/pyHGT/conv.py",
+      "original_path": "OAG/pyHGT/conv.py",
+      "sha256": "14ace211323d9d163d4edbc5203aa2bd59c31681af0ca39dd9ff9a5bbbf856b0",
+      "notebook_code_only": false
+    },
+    {
+      "path": "OAG/pyHGT/data.py",
+      "original_path": "OAG/pyHGT/data.py",
+      "sha256": "87850d34d529e0b4b7eb5f4b621fcafb60785a4992e750e10988d9e2ba3268f5",
+      "notebook_code_only": false
+    },
+    {
+      "path": "OAG/pyHGT/model.py",
+      "original_path": "OAG/pyHGT/model.py",
+      "sha256": "a96faab8646e517636f6229df5ed147879cff6ce388d84cf2b5ba64628765e26",
+      "notebook_code_only": false
+    },
+    {
+      "path": "OAG/pyHGT/utils.py",
+      "original_path": "OAG/pyHGT/utils.py",
+      "sha256": "218598d47381778d23f02a54033436503c15d1cc5963816ff3114eb5ca95d97a",
+      "notebook_code_only": false
+    },
+    {
+      "path": "OAG/train_author_disambiguation.py",
+      "original_path": "OAG/train_author_disambiguation.py",
+      "sha256": "5925deefb9bdc38a83bdf88f9232cc05ceda7ae867789156346fb11930c2ee58",
+      "notebook_code_only": false
+    },
+    {
+      "path": "OAG/train_paper_field.py",
+      "original_path": "OAG/train_paper_field.py",
+      "sha256": "fcae7df3178f2c795e7a444cc78cd837c7a8865959c9e0b7cf96976d9fc8b76b",
+      "notebook_code_only": false
+    },
+    {
+      "path": "OAG/train_paper_venue.py",
+      "original_path": "OAG/train_paper_venue.py",
+      "sha256": "34f03e443bf971d65899758688f656b19e08e2a745f9fa9553c905d22aed9b77",
+      "notebook_code_only": false
+    },
+    {
+      "path": "README.md",
+      "original_path": "README.md",
+      "sha256": "022913cedc49a9cf133ecddc004f65ddf3fe2a78f89c0b376af7cfa5ebf7b173",
+      "notebook_code_only": false
+    },
+    {
+      "path": "ogbn-mag/README.md",
+      "original_path": "ogbn-mag/README.md",
+      "sha256": "3e81a6b094048a13c0ed1ce08d08bc8fbf35574ce275d8a443efed6cb7f50747",
+      "notebook_code_only": false
+    },
+    {
+      "path": "ogbn-mag/eval_ogbn_mag.py",
+      "original_path": "ogbn-mag/eval_ogbn_mag.py",
+      "sha256": "97ffb6f5af47f0c081f79d4a83cc717acd17801b069ccde81ed4252b2ae1fb36",
+      "notebook_code_only": false
+    },
+    {
+      "path": "ogbn-mag/preprocess_ogbn_mag.py",
+      "original_path": "ogbn-mag/preprocess_ogbn_mag.py",
+      "sha256": "8b4dcc1c4216097b303664aac8ec0d1526e2643ce19bf04254053dd4640a3cc0",
+      "notebook_code_only": false
+    },
+    {
+      "path": "ogbn-mag/pyHGT/__init__.py",
+      "original_path": "ogbn-mag/pyHGT/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notebook_code_only": false
+    },
+    {
+      "path": "ogbn-mag/pyHGT/conv.py",
+      "original_path": "ogbn-mag/pyHGT/conv.py",
+      "sha256": "14ace211323d9d163d4edbc5203aa2bd59c31681af0ca39dd9ff9a5bbbf856b0",
+      "notebook_code_only": false
+    },
+    {
+      "path": "ogbn-mag/pyHGT/data.py",
+      "original_path": "ogbn-mag/pyHGT/data.py",
+      "sha256": "602d5a8d1f8841b6a0ac025c8419b051b1d4855ee88c2647aa3c35929259d5b8",
+      "notebook_code_only": false
+    },
+    {
+      "path": "ogbn-mag/pyHGT/model.py",
+      "original_path": "ogbn-mag/pyHGT/model.py",
+      "sha256": "3031430d6aaa22d2ccb5cb807b9e89323268ef389af164ce6c0f99548991d7d3",
+      "notebook_code_only": false
+    },
+    {
+      "path": "ogbn-mag/pyHGT/utils.py",
+      "original_path": "ogbn-mag/pyHGT/utils.py",
+      "sha256": "f213d27b23bcd02dd9e0096863a30aaaa8cfef50abf82de40cf5409c9a690028",
+      "notebook_code_only": false
+    },
+    {
+      "path": "ogbn-mag/train_ogbn_mag.py",
+      "original_path": "ogbn-mag/train_ogbn_mag.py",
+      "sha256": "7d759248bb25c53d481e2b04af57df8bd77cde785373bf7f7e59c0b6463ec19f",
+      "notebook_code_only": false
+    },
+    {
+      "path": "pyHGT/__init__.py",
+      "original_path": "pyHGT/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notebook_code_only": false
+    },
+    {
+      "path": "pyHGT/conv.py",
+      "original_path": "pyHGT/conv.py",
+      "sha256": "14ace211323d9d163d4edbc5203aa2bd59c31681af0ca39dd9ff9a5bbbf856b0",
+      "notebook_code_only": false
+    },
+    {
+      "path": "pyHGT/data.py",
+      "original_path": "pyHGT/data.py",
+      "sha256": "b45eb2fe452dce0a4d5dfa69cc3c9a29fc13af0f926c48cba4489bed9997ac30",
+      "notebook_code_only": false
+    },
+    {
+      "path": "pyHGT/model.py",
+      "original_path": "pyHGT/model.py",
+      "sha256": "3031430d6aaa22d2ccb5cb807b9e89323268ef389af164ce6c0f99548991d7d3",
+      "notebook_code_only": false
+    },
+    {
+      "path": "pyHGT/utils.py",
+      "original_path": "pyHGT/utils.py",
+      "sha256": "218598d47381778d23f02a54033436503c15d1cc5963816ff3114eb5ca95d97a",
+      "notebook_code_only": false
+    },
+    {
+      "path": "requirements.txt",
+      "original_path": "requirements.txt",
+      "sha256": "85cbe0c9088077f55749437cfe4c7d72e41a4e2295d51933195266f02b2fd09f",
+      "notebook_code_only": false
+    }
+  ],
+  "tree": "6daaf5ef67a783dee5126c57d6e309046c4ae517"
+}
