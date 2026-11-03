@@ -1,8 +1,8 @@
 """Tables 3 and 11 and Sections 5.2/7.2 of the November 2026 manuscript."""
 from itertools import product
 
-MODELS = ('spca', 'gcn', 'gat', 'rgcn', 'han', 'magnn', 'hgt', 'heco', 'gtc',
-          'simplehgn', 'sehgnn', 'bghgnn', 'hettree')
+MODELS = ('gcn', 'gat', 'rgcn', 'han', 'magnn', 'hgt', 'heco', 'gtc',
+          'simplehgn', 'sehgnn', 'bghgnn', 'hettree', 'spca')  # SPCA (ours) always runs last
 GRID = {'learning_rate': [0.0005, 0.001, 0.003, 0.005],
         'weight_decay': [0.0001, 0.0005], 'dropout': [0.1, 0.3, 0.5, 0.6],
         'hidden_channels': [64, 128, 256, 512], 'head_channels': [8, 16, 32, 64, 128]}
