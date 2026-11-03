@@ -1,6 +1,6 @@
 # Model and experiment settings
 
-This document describes the SPCA method, dataset preparation, hyperparameter search and evaluation settings. Use `run_<dataset>.py` to configure experiments. Additional commands for `index.py` are documented in [experiments.md](experiments.md).
+This document describes the SPCA method, dataset preparation, hyperparameter search and evaluation settings. Use `run_<dataset>.py` to configure experiments.
 
 ## Method
 
@@ -42,7 +42,7 @@ K-means uses the selected NC embeddings, the known number of classes and the rep
 
 ## Baseline configuration
 
-Model folders contain the architectures, reusable layers and model-specific preprocessing. Upstream snapshots provide original source and preprocessing scripts with pinned versions. The shared runner prepares inputs with PyG/SciPy so all models receive the same graph, masks and Table 3 paths.
+Model folders contain the architectures, reusable layers and model-specific preprocessing. The shared runner prepares inputs with PyG/SciPy so all models receive the same graph, masks and Table 3 paths.
 
 - GCN/GAT use the union of induced endpoint graphs. RGCN, HGT, Simple-HGN and BG-HGNN retain one relation ID per selected metapath. Type-aware models operate on one receiving node type per endpoint encoder.
 - MAGNN uses ordered instance features and RotatE0 by default. It samples up to 100 complete instances per receiver using prefix-count sampling with replacement when needed. All instances are available with `--set magnn.max_instances=null`.

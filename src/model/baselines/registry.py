@@ -1,4 +1,4 @@
-"""Lazy baseline discovery without importing optional upstream dependencies."""
+"""Lazy baseline discovery: each model module is imported only when requested."""
 from dataclasses import dataclass
 from importlib import import_module
 
@@ -29,7 +29,7 @@ ALIASES = {'hgb': 'simplehgn', 'simple-hgn': 'simplehgn', 'bg-hgnn': 'bghgnn'}
 
 
 def get_baseline(name):
-    """Return a model class or an UpstreamBaseline, according to integration."""
+    """Return the model class registered for a baseline name or alias."""
     key = name.lower()
     key = ALIASES.get(key, key)
     if key not in BASELINES:

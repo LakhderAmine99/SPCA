@@ -1,4 +1,4 @@
-"""Local GCN architecture; upstream TensorFlow source is retained in upstream/."""
+"""Local GCN architecture (PyTorch port of tkipf/gcn)."""
 from torch import nn
 from torch.nn import functional as F
 from .layers import GCNConv

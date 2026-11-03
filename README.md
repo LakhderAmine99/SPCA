@@ -16,10 +16,9 @@ python -m venv .venv
 # PowerShell: .venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 python -m pytest -q
-python scripts/check_public_files.py
 ```
 
-The models use PyTorch and PyG. Baseline source snapshots include their original dependencies and preprocessing scripts. Tests use synthetic graphs and mocked downloads.
+The models use PyTorch and PyG. Tests use synthetic graphs and mocked downloads.
 
 ## Run commands
 
@@ -80,12 +79,10 @@ Run manifests record graph/feature/split fingerprints, seeds, effective settings
 ## Models and layout
 
 ```text
-src/model/spca/             SPCA architecture, reusable PyG layers, legacy variants
+src/model/spca/             SPCA architecture, reusable PyG layers and encoder variants
 src/model/baselines/<name>/ Model architecture, layers, preprocessing, README
-                           upstream/ contains pinned source-only snapshots
 src/experiments/            Configuration, input adapters, splits, training and CLI
 src/graph.py               Exact binary metapath composition and instance sampling
-src/NC/, src/LP/           Reusable task adapters
 run_<dataset>.py           Five dataset entrypoints
 configs/                  Protocol defaults and the manuscript grid
 tests/                    Offline unit/regression tests on synthetic data
@@ -108,19 +105,9 @@ local/, data/             Ignored runtime artifacts and dataset caches
 | BG-HGNN | [Model](src/model/baselines/bghgnn/README.md) · [mao1207/BG-HGNN](https://github.com/mao1207/BG-HGNN) |
 | HetTree | [Model and paper](src/model/baselines/hettree/README.md) |
 
-Baseline source snapshots include their commits and SHA-256 hashes in `upstream/PROVENANCE.json`, preprocessing scripts, and license notices. Notebook preprocessing is extracted to Python. Each model folder provides its runnable architecture and reusable layers. Use `run_<dataset>.py` for the manuscript protocol; `index.py` and the encoder APIs are also available.
+Each model folder provides its runnable architecture, reusable layers and model-specific preprocessing. Use `run_<dataset>.py` for the manuscript protocol.
 
-## Publication and citation
-
-Keep generated files under `local/` or the ignored runtime directories. Run `python scripts/check_public_files.py` before committing to check that the publication contains source, scripts, tests, configuration and documentation.
-
-Export the source and documentation to a new local directory:
-
-```bash
-python scripts/export_source.py --output local/public-source
-```
-
-The export includes the current source and documentation and excludes `.git` and local runtime artifacts.
+## Citation
 
 ```bibtex
 @misc{lakhder2026spca,

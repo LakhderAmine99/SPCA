@@ -1,8 +1,7 @@
 """Original GTC Transformer layers, retained from PHD-lanyu/GTC.
 
 Source: code/module/transformer_model.py at
-1c4b3b979a2688d4a2b6da8bf48b9aea34b80fbb. See upstream/README.md
-for the authors' Apache-2.0 notice and upstream/PROVENANCE.json.
+1c4b3b979a2688d4a2b6da8bf48b9aea34b80fbb (Apache-2.0, original authors).
 The runnable adapter uses EncoderLayer; its shape fixes live in layers.py.
 """
 import torch

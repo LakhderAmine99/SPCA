@@ -19,4 +19,4 @@ model = HetTree(features, num_classes, label_features=labels)
 logits = model()
 ```
 
-See `tests/test_hettree.py`, `tests/test_paper_models.py` and [experiment settings](../../../../docs/paper_protocol.md).
+See `tests/test_paper_models.py` and [experiment settings](../../../../docs/paper_protocol.md).

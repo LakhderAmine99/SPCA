@@ -1,12 +1,7 @@
-import sys
-import tempfile
-from pathlib import Path
-
 import pytest
 import torch
 
 from src.model.baselines.registry import BASELINES, get_baseline
-from src.model.baselines._upstream import UpstreamBaseline
 from src.model.spca import SPCA
 
 
@@ -61,21 +56,3 @@ def test_spca_classifier_and_state_restore(variant):
     restored = SPCA(*args, variant=variant, heads=2).eval()
     restored.load_state_dict(model.state_dict())
     torch.testing.assert_close(logits, restored(x, graph))
-
-
-def test_upstream_process_preserves_arguments_and_working_directory():
-    with tempfile.TemporaryDirectory() as directory:
-        root = Path(directory)
-        (root / 'code').mkdir()
-        (root / 'code/main.py').write_text(
-            'import sys\nfrom pathlib import Path\n'
-            'assert Path.cwd().name == "code"\n'
-            'assert sys.argv[1:] == ["argument with spaces", "--flag"]\n'
-        )
-        runner = UpstreamBaseline('toy', 'test', 'code', 'main.py')
-        runner.run(root, ['argument with spaces', '--flag'], python=sys.executable)
-        with pytest.raises(ValueError):
-            runner.command(root, entrypoint='../../outside.py')
-        with pytest.raises(FileNotFoundError):
-            runner.command(root, entrypoint='missing.py')
-        assert issubclass(get_baseline('bghgnn'), torch.nn.Module)

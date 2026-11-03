@@ -64,7 +64,7 @@ def make_parser(dataset=None):
     parser.add_argument('--allow-data-mismatch', action='store_true')
     parser.add_argument('--feature-seed', type=int, default=0)
     parser.add_argument('--feature-channels', type=int, default=128)
-    parser.add_argument('--device', default='auto')
+    parser.add_argument('--device', default='cuda')
     parser.add_argument('--threads', type=int, default=1)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--save-checkpoints', action='store_true')
@@ -197,6 +197,9 @@ def run(args):
     from src.checkpoint import save_checkpoint
     torch.set_num_threads(args.threads)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') if args.device == 'auto' else torch.device(args.device)
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        log.warning('CUDA requested but unavailable (torch %s); falling back to CPU', torch.__version__)
+        device = torch.device('cpu')
     log.info('Device: %s | torch %s | PyG %s', device, torch.__version__, torch_geometric.__version__)
     root = args.data_root or Path('data') / 'paper' / args.dataset
     log.info('Loading %s from %s ...', args.dataset, root)
