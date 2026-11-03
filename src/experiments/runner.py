@@ -3,9 +3,33 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import logging
 from pathlib import Path
 import sys
+import time
 from .config import MODELS, GRID, PATH_CODES, LP_RATIOS, configurations, model_defaults, ratio
+
+log = logging.getLogger('hgnn')
+_FORMAT = logging.Formatter('%(asctime)s  %(message)s', datefmt='%H:%M:%S')
+
+
+def setup_logging(quiet=False):
+    """Console logging to stderr (unbuffered); a run.log file is attached once the output folder is known."""
+    log.setLevel(logging.WARNING if quiet else logging.INFO)
+    log.propagate = False
+    if not any(getattr(h, '_hgnn_console', False) for h in log.handlers):
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setFormatter(_FORMAT)
+        handler._hgnn_console = True
+        log.addHandler(handler)
+
+
+def attach_log_file(path):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handler = logging.FileHandler(path, encoding='utf-8')
+    handler.setFormatter(_FORMAT)
+    log.addHandler(handler)
+    return handler
 
 
 def make_parser(dataset=None):
@@ -48,6 +72,8 @@ def make_parser(dataset=None):
     parser.add_argument('--cluster-split', choices=['all', 'test'], default='all')
     parser.add_argument('--kmeans-n-init', type=int, default=10)
     parser.add_argument('--dry-run', action='store_true', help='Print complete plan; never import torch, load data or train')
+    parser.add_argument('--log-every', type=int, default=10, help='Log training progress every N epochs (0 = only per-fit summaries)')
+    parser.add_argument('--quiet', action='store_true', help='Suppress progress logs (warnings and errors only)')
     return parser
 
 
@@ -92,6 +118,8 @@ def parse_args(argv=None, dataset=None):
     args.lp_ratios = args.lp_ratios or LP_RATIOS.get(args.dataset)
     if args.test_ratio is not None and (args.test_ratio == 'full' or not 0 < float(args.test_ratio) < 1):
         parser.error('--test-ratio must be a fraction strictly between zero and one')
+    if args.log_every < 0:
+        parser.error('--log-every must be zero or positive')
     if args.negatives_per_positive < 1 or args.feature_channels < 1 or args.kmeans_n_init < 1:
         parser.error('Negative-sampling ratio, feature width and K-means restarts must be positive')
     if args.auxiliary_weight < 0:
@@ -146,6 +174,15 @@ def run(args):
     if args.dry_run:
         print(json.dumps(manifest, indent=2, default=str))
         return manifest
+    setup_logging(args.quiet)
+    log.info('Dataset %s | task %s | protocol %s | budgets %s | models %s | phase %s',
+             args.dataset, args.task, args.protocol, 'lp' if args.task == 'lp' else args.train_ratios,
+             ', '.join(args.models), args.phase)
+    for name in args.models:
+        job = manifest['models'][name]
+        log.info('Plan %s: %d grid configs x %d tuning seeds + %d reporting seeds per budget',
+                 name, job['grid_configurations'], len(args.tuning_seeds), job['reporting_fits_per_budget'])
+    log.info('Importing torch / torch_geometric ...')
     # Heavy dependencies and all data access occur only after the dry-run exit.
     import torch
     import numpy as np
@@ -158,12 +195,19 @@ def run(args):
     from src.checkpoint import save_checkpoint
     torch.set_num_threads(args.threads)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') if args.device == 'auto' else torch.device(args.device)
+    log.info('Device: %s | torch %s | PyG %s', device, torch.__version__, torch_geometric.__version__)
     root = args.data_root or Path('data') / 'paper' / args.dataset
+    log.info('Loading %s from %s ...', args.dataset, root)
+    loading = time.perf_counter()
     data = load_dataset(args.dataset, root, graph_path=args.graph, feature_seed=args.feature_seed,
                         feature_channels=args.feature_channels, allow_data_mismatch=args.allow_data_mismatch)
+    log.info('Loaded in %.1fs: nodes %s', time.perf_counter() - loading,
+             {t: data[t].num_nodes for t in data.node_types})
     output = args.output or Path('local/experiments') / (args.dataset + '_' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ'))
     if (output / 'manifest.json').exists():
         raise FileExistsError(f'{output} already contains a run; choose a new --output to preserve it')
+    file_handler = attach_log_file(output / 'run.log')
+    log.info('Output folder: %s (log also written to run.log)', output)
     manifest.update(versions={'python': sys.version, 'torch': torch.__version__, 'pyg': torch_geometric.__version__},
         data={'nodes': {t: data[t].num_nodes for t in data.node_types},
               'edges': {str(k): v.size(1) for k, v in data.edge_index_dict.items()},
@@ -205,6 +249,7 @@ def run(args):
                 args.val_count if args.val_count is not None else int(original['val_mask'].sum()),
                 args.split_seed, args.test_ratio or 0.1, args.test_count)
         data = data.to(device)
+        log.info('Preparing metapath graph for target %s ...', target)
         nc_prepared = PreparedGraph(data, args.dataset, target,
                                     custom_paths[target] if custom_paths else None)
     budgets = [None] if args.task == 'lp' else args.train_ratios
@@ -213,8 +258,9 @@ def run(args):
         budget_key = 'lp' if budget is None else str(budget)
         chosen['selected'].setdefault(budget_key, {})
         summary[budget_key] = {}
-        def one_fit(name, params, seed, reporting=False):
+        def one_fit(name, params, seed, reporting=False, label=''):
             seed_everything(seed)
+            started = time.perf_counter()
             settings = {**model_defaults(name, args.dataset), **params}
             if args.task == 'lp':
                 endpoints = list(PATH_CODES[args.dataset])
@@ -236,8 +282,13 @@ def run(args):
                 train, val, test = ({'labels': labels, 'mask': masks[k + '_mask']} for k in ('train', 'val', 'test'))
                 split_info = {k: {'count': int(v.sum()), 'sha256': hashlib.sha256(v.cpu().numpy().tobytes()).hexdigest()} for k, v in masks.items()}
             result = fit(model, train, val, settings, task='lp' if args.task == 'lp' else 'nc',
-                         epochs=args.epochs, patience=args.patience, auxiliary_weight=args.auxiliary_weight)
+                         epochs=args.epochs, patience=args.patience, auxiliary_weight=args.auxiliary_weight,
+                         log_every=0 if args.quiet else args.log_every, label=label)
             result.update(seed=seed, settings=settings, splits=split_info)
+            metric = 'auc' if args.task == 'lp' else 'macro_f1'
+            log.info('%s done: best val %s %.4f at epoch %d (%d epochs, %.1fs)', label, metric,
+                     result['validation'][metric], result.get('best_epoch', 0), result.get('epochs_completed', 0),
+                     time.perf_counter() - started)
             if reporting:
                 result['test'] = evaluate_test(model, test, task='lp' if args.task == 'lp' else 'nc')
                 if args.task == 'clustering':
@@ -253,20 +304,27 @@ def run(args):
                                           ari=float(adjusted_rand_score(truth, predicted)))
                 if args.save_checkpoints:
                     result['checkpoint'] = str(save_checkpoint(model.state_dict(), output / budget_key / name / f'seed_{seed}.pt'))
+                log.info('%s TEST %s', label, '  '.join(f'{k} {v:.4f}' for k, v in result['test'].items()))
             return result
         for name in args.models:
             overrides = manifest['models'][name]['fixed_overrides']
             if args.phase in {'all', 'tune'} and not args.selected_config:
                 best_key, best_params = None, None
+                total = manifest['models'][name]['grid_configurations']
+                log.info('=== %s | budget %s | tuning %d configurations ===', name, budget_key, total)
                 for index, params in enumerate(configurations(name, overrides, manifest['grid'])):
-                    trials = [one_fit(name, params, seed) for seed in args.tuning_seeds]
+                    log.info('[%s %s] config %d/%d: %s', name, budget_key, index + 1, total, params)
+                    trials = [one_fit(name, params, seed, label=f'[{name} {budget_key} cfg {index + 1}/{total} seed {seed}]')
+                              for seed in args.tuning_seeds]
                     metric = 'auc' if args.task == 'lp' else 'macro_f1'
                     score = (float(np.mean([r['validation'][metric] for r in trials])),
                              -float(np.mean([r['validation']['loss'] for r in trials])))
                     dump(output / budget_key / name / 'tuning' / f'config_{index:04}.json', {'parameters': params, 'runs': trials})
                     if best_key is None or score > best_key:
                         best_key, best_params = score, params
-                    print(f'{args.dataset} {budget_key} {name}: configuration {index + 1}, validation {score[0]:.6f}', flush=True)
+                    log.info('[%s %s] config %d/%d mean validation %.6f (best so far %.6f)',
+                             name, budget_key, index + 1, total, score[0], best_key[0])
+                log.info('[%s %s] selected: %s', name, budget_key, best_params)
                 chosen['selected'][budget_key][name] = {**model_defaults(name, args.dataset), **best_params}
                 dump(output / 'selected.json', chosen)
             if args.phase in {'all', 'report'}:
@@ -274,12 +332,19 @@ def run(args):
                     raise ValueError(f'Selected configuration missing {budget_key}/{name}')
                 settings = {**chosen['selected'][budget_key].get(name, model_defaults(name, args.dataset)), **overrides}
                 reports = []
+                log.info('=== %s | budget %s | reporting on %d seeds ===', name, budget_key, len(args.seeds))
                 for seed in args.seeds:
-                    result = one_fit(name, settings, seed, reporting=True)
+                    result = one_fit(name, settings, seed, reporting=True, label=f'[{name} {budget_key} report seed {seed}]')
                     reports.append(result)
                     dump(output / budget_key / name / f'seed_{seed}.json', result)
                 summary[budget_key][name] = summarize([r['test'] for r in reports])
                 dump(output / 'summary.json', summary)
+                log.info('[%s %s] SUMMARY %s', name, budget_key, '  '.join(
+                    f"{k} {v['mean']:.4f}" + (f" +/- {v['std']:.4f}" if v['std'] is not None else '')
+                    for k, v in summary[budget_key][name].items()))
+    log.info('Finished. Local outputs: %s', output)
+    log.removeHandler(file_handler)
+    file_handler.close()
     print(f'Local outputs: {output}')
     return summary
 

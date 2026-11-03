@@ -1,10 +1,14 @@
 """Validation-only selection. Test evaluation is a separate, explicit operation."""
 import copy
+import logging
 import random
+import time
 import numpy as np
 import torch
 from torch.nn import functional as F
 from sklearn.metrics import f1_score, roc_auc_score, average_precision_score
+
+log = logging.getLogger('hgnn')
 
 
 def seed_everything(seed):
@@ -48,7 +52,7 @@ class ValidationCheckpoint:
 
 
 def fit(model, train, validation, settings, *, task='nc', epochs=500, patience=100,
-        auxiliary_weight=1.0):
+        auxiliary_weight=1.0, log_every=0, label=''):
     """Only training/validation inputs are accepted; there is no test callback.
 
     For HeCo/GTC the encoder learns its contrastive objective and the linear
@@ -60,6 +64,8 @@ def fit(model, train, validation, settings, *, task='nc', epochs=500, patience=1
     optimizer = torch.optim.Adam(model.parameters(), lr=settings['learning_rate'], weight_decay=settings['weight_decay'])
     checkpoint = ValidationCheckpoint('macro_f1' if task == 'nc' else 'auc')
     stale = 0
+    metric_name = checkpoint.metric
+    started = time.perf_counter()
     for epoch in range(1, epochs + 1):
         model.train()
         optimizer.zero_grad(set_to_none=True)
@@ -89,7 +95,13 @@ def fit(model, train, validation, settings, *, task='nc', epochs=500, patience=1
             else:
                 metrics = link_metrics(model(validation['edge_label_index']), validation['edge_label'])
         stale = 0 if checkpoint.consider(model, metrics, epoch) else stale + 1
+        if log_every and (epoch == 1 or epoch % log_every == 0):
+            log.info('%s epoch %d/%d  train_loss %.4f  val_%s %.4f  val_loss %.4f  best %.4f@%d  (%.1fs)',
+                     label, epoch, epochs, float(loss.item()), metric_name, metrics[metric_name], metrics['loss'],
+                     checkpoint.metrics[metric_name], checkpoint.epoch, time.perf_counter() - started)
         if stale >= patience:
+            if log_every:
+                log.info('%s early stop at epoch %d (no improvement for %d epochs)', label, epoch, patience)
             break
     model.load_state_dict(checkpoint.state)
     model.eval()
