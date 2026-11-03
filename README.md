@@ -108,7 +108,7 @@ local/, data/             Ignored runtime artifacts and dataset caches
 | BG-HGNN | [Model](src/model/baselines/bghgnn/README.md) · [mao1207/BG-HGNN](https://github.com/mao1207/BG-HGNN) |
 | HetTree | [Model and paper](src/model/baselines/hettree/README.md) |
 
-Baseline source snapshots include their commits and SHA-256 hashes in `upstream/PROVENANCE.json`, preprocessing scripts, and license notices. Notebook preprocessing is extracted to Python. Each model folder provides its runnable architecture and reusable layers. Use `run_<dataset>.py` for the manuscript protocol; `index.py`, `tune_imdb.py` and the encoder APIs are also available.
+Baseline source snapshots include their commits and SHA-256 hashes in `upstream/PROVENANCE.json`, preprocessing scripts, and license notices. Notebook preprocessing is extracted to Python. Each model folder provides its runnable architecture and reusable layers. Use `run_<dataset>.py` for the manuscript protocol; `index.py` and the encoder APIs are also available.
 
 ## Publication and citation
 

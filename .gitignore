@@ -231,6 +231,7 @@ notebooks/
 /docs/NOTES.md
 /src/layer/
 # Historical exploratory scripts, retained locally for reference
+/tune_imdb.py
 /actor.py
 /index5.py
 /index_2.py
