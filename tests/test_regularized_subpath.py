@@ -10,7 +10,11 @@ import torch
 from torch_geometric.data import HeteroData
 
 import index
-import tune_imdb
+
+try:  # Historical local-only script (gitignored); absent from public clones.
+    import tune_imdb
+except ImportError:
+    tune_imdb = None
 
 
 def tiny_graph():
@@ -163,6 +167,7 @@ class RegularizedSubpathTests(unittest.TestCase):
         self.assertEqual(result['best_val_loss'], 0.8)
         self.assertEqual(float(model.weight.item()), 2.0)
 
+    @unittest.skipIf(tune_imdb is None, 'tune_imdb.py is a local-only historical script')
     def test_tuner_requests_test_only_once_after_configuration_selection(self):
         requested_splits = []
         original_test = tune_imdb.test

@@ -54,7 +54,7 @@ An existing `data/dblp/` cache is reused when the default DBLP cache does not ex
 Checkpoint and report names start with the selected dataset, preventing an ACM
 or DBLP run from overwriting an IMDB result. The Python API is
 `run_experiment(dataset_name='dblp', ...)`; `run_imdb_example(...)` remains
-available for existing notebooks. `tune_imdb.py` continues to tune IMDB.
+available for existing notebooks. Use `run_imdb.py --phase tune` to tune IMDB.
 
 DBLP supports the
 [PyG/MAGNN data](https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.datasets.DBLP.html).
