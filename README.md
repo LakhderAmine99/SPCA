@@ -2,7 +2,15 @@
 
 Source code for **SPCA: SubPath Semantic Encoding for Context Aware Heterogeneous Graph Neural Networks**, by Amine Lakhder, Fahd Kalloubi, Lamiae Azizi, Imad Kissami, and Abdelhak Boulaalam.
 
-SPCA combines attention over metapath endpoint neighborhoods with learned embeddings of the internal node-type sequence. The implementation follows Sections 4 and 7.2 of the manuscript: typed feature projection, dot-product neighbor attention, structural LayerNorm, shared type embeddings and a dedicated two-layer MLP per distinct subpath, additive context fusion followed by LayerNorm, and concatenation with a final linear projection.
+## Overview
+
+![SPCA overview: subpath context encoders and metapath-based neighbor encoders fused into the final node embedding](docs/figures/fig1.png)
+
+**Figure 1.** Overview of SPCA. Each unique subpath inside a metapath has its own context encoder. Its output is fused with the metapath-based neighborhood embedding, and a global fusion step combines all metapaths into the final target-node embedding.
+
+![SPCA architecture: (a) metapaths and subpaths, (b) metapath-based neighbor encoder, (c) subpath context encoder, (d) global context-aware fusion](docs/figures/fig2.png)
+
+**Figure 2.** SPCA architecture: (a) metapaths and their internal subpaths, (b) metapath-based neighbor encoder, (c) subpath context encoder, (d) global context-aware fusion for downstream node classification and link prediction.
 
 This repository contains source, scripts, tests, configuration and documentation. Datasets, trained parameters, experiment outputs, CSVs and figures remain in ignored local directories.
 

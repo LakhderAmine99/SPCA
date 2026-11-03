@@ -311,3 +311,6 @@ notebooks/
 /tests/test_simplehgn.py
 /tests/test_task_adapters.py
 /tests/test_publication.py
+
+# README figures
+!docs/figures/*.png
