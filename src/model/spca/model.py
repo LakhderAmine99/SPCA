@@ -1,5 +1,5 @@
 """Classification interface for the SPCA model and controlled variants."""
-from .encoders import SubpathClassifier, SubpathHANConv2, RegularizedSubpathHANConv, StackedSubpathHAN
+from .encoders import SubpathClassifier, SPCAConv2, RegularizedSPCAConv, StackedSPCA
 from .layers import SPCALayer
 
 
@@ -8,8 +8,8 @@ class SPCA(SubpathClassifier):
                  metapaths, subpaths_dict=None, *, variant='base', context_mode='subpath',
                  aggregator='concat-mlp', heads=1, dropout=0.5, num_layers=2,
                  context_positions='intermediate', normalization=True, node_chunk_size=256):
-        encoders = {'base': SPCALayer, 'legacy': SubpathHANConv2, 'regularized': RegularizedSubpathHANConv,
-                    'stacked': StackedSubpathHAN}
+        encoders = {'base': SPCALayer, 'legacy': SPCAConv2, 'regularized': RegularizedSPCAConv,
+                    'stacked': StackedSPCA}
         if variant not in encoders:
             raise ValueError(f'Unknown SPCA variant: {variant}')
         options = dict(heads=heads, dropout=dropout, aggregator=aggregator,

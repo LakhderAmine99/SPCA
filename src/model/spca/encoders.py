@@ -47,7 +47,7 @@ class SimpleMetapathConv(MessagePassing):
         return x_j
 
 
-class SubpathHANConv(nn.Module):
+class SPCAConv(nn.Module):
     def __init__(
         self,
         in_channels_dict,
@@ -156,7 +156,7 @@ class SubpathHANConv(nn.Module):
         return out
 
 
-class SubpathHANConv2(nn.Module):
+class SPCAConv2(nn.Module):
     """Metapath encoder with optional subpath context or vector/scalar biases."""
 
     def __init__(
@@ -308,7 +308,7 @@ class SubpathHANConv2(nn.Module):
         return out
 
 
-class RegularizedSubpathHANConv(SubpathHANConv2):
+class RegularizedSPCAConv(SPCAConv2):
     """Opt-in encoder with head-wise attention, feature residuals and dropout."""
 
     def __init__(self, *args, **kwargs):
@@ -355,7 +355,7 @@ class RegularizedSubpathHANConv(SubpathHANConv2):
         return F.dropout(F.gelu(self.output_norm(hidden)), p=self.dropout, training=self.training)
 
 
-class SubpathHANConv3(nn.Module):
+class SPCAConv3(nn.Module):
     def __init__(
         self,
         in_channels_dict,
@@ -458,7 +458,7 @@ class SubpathHANConv3(nn.Module):
         return out
 
 
-class StackedSubpathHAN(nn.Module):
+class StackedSPCA(nn.Module):
     def __init__(
         self,
         in_channels_dict,
@@ -490,7 +490,7 @@ class StackedSubpathHAN(nn.Module):
                 else {k: (out_channels if k == self.target_type else in_channels_dict[k]) for k in in_channels_dict}
             )
             self.layers.append(
-                SubpathHANConv2(
+                SPCAConv2(
                     in_channels_dict=layer_in_channels,
                     out_channels=out_channels,
                     metadata=metadata,
