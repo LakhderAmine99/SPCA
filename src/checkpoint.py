@@ -8,7 +8,6 @@ from pathlib import Path
 
 import torch
 
-
 def save_checkpoint(state_dict, path):
     """Return the saved path, choosing a new filename if replacement stays locked."""
     destination = Path(path).resolve()

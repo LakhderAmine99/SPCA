@@ -108,7 +108,6 @@ def parse_args(argv=None, dataset=None):
         parser.error('Unknown dataset or model in configuration')
     if args.phase not in {'all', 'tune', 'report'} or args.protocol not in {'main', 'low-label'}:
         parser.error('Unknown phase or protocol in configuration')
-    # Baselines first, SPCA always last, whatever order --models / --config gives.
     args.models = [m for m in dict.fromkeys(args.models) if m != 'spca'] + (['spca'] if 'spca' in args.models else [])
     args.task = args.task or ('lp' if args.dataset in LP_RATIOS else 'nc')
     if args.task not in {'nc', 'clustering', 'lp'}:

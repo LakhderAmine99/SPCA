@@ -7,14 +7,12 @@ import numpy as np
 import scipy.sparse as sp
 import torch
 
-
 def relation_for(edge_index_dict, source, destination):
     matches = [edges for (a, _, b), edges in edge_index_dict.items()
                if a == source and b == destination]
     if len(matches) != 1:
         raise ValueError(f'Expected one relation {source} -> {destination}, found {len(matches)}')
     return matches[0]
-
 
 def compose_metapaths(x_dict, edge_index_dict, metapaths):
     """Construct exact binary endpoint graphs, without adding artificial loops."""
@@ -36,7 +34,6 @@ def compose_metapaths(x_dict, edge_index_dict, metapaths):
         row, col = prefixes[path].nonzero()
         result[path] = torch.from_numpy(np.stack([row, col]).astype(np.int64)).to(x_dict[path[-1]].device)
     return result
-
 
 def enumerate_instances(x_dict, edge_index_dict, metapaths, max_instances=None, seed=0):
     """MAGNN ordered instances, optionally sampled per receiving node.

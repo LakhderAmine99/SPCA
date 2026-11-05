@@ -2,12 +2,11 @@
 from itertools import product
 
 MODELS = ('gcn', 'gat', 'rgcn', 'han', 'magnn', 'hgt', 'heco', 'gtc',
-          'simplehgn', 'sehgnn', 'bghgnn', 'hettree', 'spca')  # SPCA (ours) always runs last
+          'simplehgn', 'sehgnn', 'bghgnn', 'hettree', 'spca')
 GRID = {'learning_rate': [0.0005, 0.001, 0.003, 0.005],
         'weight_decay': [0.0001, 0.0005], 'dropout': [0.1, 0.3, 0.5, 0.6],
         'hidden_channels': [64, 128, 256, 512], 'head_channels': [8, 16, 32, 64, 128]}
-# These models expose a separate channel width per attention head. Others use
-# hidden_channels / heads (HGT/SeHGNN/GTC) or parameter-free attention (SPCA).
+
 HEAD_WIDTH_MODELS = {'gat', 'han', 'magnn', 'simplehgn', 'bghgnn'}
 PATH_CODES = {
     'imdb': {'movie': ['MDM', 'MAM', 'MDMDM', 'MDMAMDM', 'MAMAM', 'MAMDMAM', 'MAMDM', 'MDMAM']},
